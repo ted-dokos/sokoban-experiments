@@ -195,7 +195,7 @@ impl GameState {
     pub fn update(&mut self, input: &InputState, step_time: Instant) {
         self.tick += 1;
         self.update_instant = step_time;
-        self.player.physics.accel = (0.0, GRAVITY, 0.0).into();
+        self.player.physics.accel = (0.0, 0.0, 0.0).into();
         let lateral_force = PLAYER_FORCE
             * cgmath::Vector3::normalize(
                 [-self.player.camera.direction.z, 0.0, self.player.camera.direction.x].into(),
@@ -248,32 +248,6 @@ impl GameState {
             // center-of-mass in tandem.
             self.player.camera.eye =
                 self.player.physics.position + Vector3::new(0.0, CAMERA_PHYSICS_OFFSET, 0.0);
-        }
-
-        const ROTATION_MOVEMENT_DEG: f32 = 0.1;
-        let lateral_rot = Rotor::from_axis_angle(
-            cgmath::Vector3::unit_y(),
-            cgmath::Deg(-ROTATION_MOVEMENT_DEG * input.mouse_x as f32),
-        );
-        let vertical_rot = Rotor::from_axis_angle(
-            cgmath::Vector3::normalize(
-                [self.player.camera.direction.z, 0.0, -self.player.camera.direction.x].into(),
-            ),
-            cgmath::Deg(ROTATION_MOVEMENT_DEG * input.mouse_y as f32),
-        );
-        // Prevent the camera from getting too close to a vertical pole, while still allowing for
-        // lateral movement.
-        const POLAR_THRESHOLD: f32 = 0.001;
-        let new_vertical =
-            cgmath::Vector3::normalize(vertical_rot.rotate_vector(self.player.camera.direction));
-        if abs(cgmath::Vector3::dot(new_vertical, cgmath::Vector3::unit_y()))
-            > 1.0 - POLAR_THRESHOLD
-        {
-            self.player.camera.direction =
-                cgmath::Vector3::normalize(lateral_rot.rotate_vector(self.player.camera.direction));
-        } else {
-            self.player.camera.direction =
-                cgmath::Vector3::normalize(lateral_rot.rotate_vector(new_vertical));
         }
     }
 }
